@@ -6,7 +6,7 @@
   "postgres": {
       "user": "mirror_db_user",
       "password": "mirror_db_pass",
-      "host": "localhost",
+      "host": "postgres",
       "port": 5432
   },
   "mode": "mirror",
