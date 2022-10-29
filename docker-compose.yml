@@ -1,16 +1,16 @@
 version: '3'
 services:
-  postgres:
-    expose:
-      - 5432
-    environment:
-      - POSTGRES_USER=mirror_db_user
-      - POSTGRES_PASSWORD=mirror_db_pass
-    volumes:
-      - /services/docker/sponsorblock/mirror:/mirror
-    image: postgres:alpine
-    networks:
-      - internal
+  # postgres:
+  #   expose:
+  #     - 5432
+  #   environment:
+  #     - POSTGRES_USER=mirror_db_user
+  #     - POSTGRES_PASSWORD=mirror_db_pass
+  #   volumes:
+  #     - /services/docker/sponsorblock/mirror:/mirror
+  #   image: postgres:alpine
+  #   networks:
+  #     - internal
   sb-mirror:
     #image: mchangrh/sb-mirror:latest
     build: ./build/sb-mirror
@@ -21,8 +21,8 @@ services:
       - MIRROR=TRUE # enable cronjob
       # - MIRROR_URL=qc.mchang.xyz # override to set upstream mirror
       - VALIDATE=TRUE # enable rsync checksum validation
-      # - CSVLINT=TRUE # lint csv files (will just stop sqlite3 from complaining)
-      # - SQLITE=TRUE # generate .db in /export
+      - CSVLINT=TRUE # lint csv files (will just stop sqlite3 from complaining)
+      - SQLITE=TRUE # generate .db in /export
         # SQLITE will not always generate usable files since postgres does not export files correctly.
       - PADDING_VAR=false # here to make compose not complain
     volumes:
@@ -37,8 +37,8 @@ services:
     #  - "8080:8080"
     volumes:
       - /services/docker/sponsorblock/export/:/app/database/
-      # - ./sqlite-config.json:/app/config.json
-      - ./postgres-config.json:/app/config.json
+      - ./sqlite-config.json:/app/config.json
+      #- ./postgres-config.json:/app/config.json
     image: ghcr.io/ajayyy/sb-server:latest
     labels:
       - "traefik.enable=true"
