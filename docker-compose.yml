@@ -37,7 +37,7 @@ services:
     #  - "8080:8080"
     volumes:
       - /services/docker/sponsorblock/export/:/app/database/
-      - ./sqlite-config.json:/app/config.json
+      - ./config/sqlite-config.json:/app/config.json
       #- ./postgres-config.json:/app/config.json
     image: ghcr.io/ajayyy/sb-server:latest
     labels:
