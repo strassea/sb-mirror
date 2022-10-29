@@ -1,36 +1,59 @@
 version: '3'
 services:
   postgres:
-    ports:
-      - '5432:5432'
+    expose:
+      - 5432
     environment:
       - POSTGRES_USER=mirror_db_user
       - POSTGRES_PASSWORD=mirror_db_pass
     volumes:
-      - ./mirror:/mirror
+      - /services/docker/sponsorblock/mirror:/mirror
     image: postgres:alpine
+    networks:
+      - internal
   sb-mirror:
-    image: mchangrh/sb-mirror:latest
+    #image: mchangrh/sb-mirror:latest
     build: ./build/sb-mirror
     # map port externally
-    ports:
-      - "873:873"
+    # ports:
+    #   - "873:873"
     environment:
-      # - MIRROR=TRUE # enable cronjob
+      - MIRROR=TRUE # enable cronjob
       # - MIRROR_URL=qc.mchang.xyz # override to set upstream mirror
-      # - VALIDATE=TRUE # enable rsync checksum validation
+      - VALIDATE=TRUE # enable rsync checksum validation
       # - CSVLINT=TRUE # lint csv files (will just stop sqlite3 from complaining)
       # - SQLITE=TRUE # generate .db in /export
         # SQLITE will not always generate usable files since postgres does not export files correctly.
       - PADDING_VAR=false # here to make compose not complain
     volumes:
-      - ./mirror:/mirror
-      - ./export:/export
+      - /services/docker/sponsorblock/mirror:/mirror
+      - /services/docker/sponsorblock/export:/export
+    networks:
+      - internal
   sb-server:
-    ports: 
-     - "8080:8080"
+    expose:
+      - 8080
+    # ports: 
+    #  - "8080:8080"
     volumes:
-      - ./export/:/app/database/
+      - /services/docker/sponsorblock/export/:/app/database/
       # - ./sqlite-config.json:/app/config.json
-      # - ./postgres-config.json:/app/config.json
+      - ./postgres-config.json:/app/config.json
     image: ghcr.io/ajayyy/sb-server:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sponsorblock.rule=Host(`sponsorblock.stran-tech.com`) "
+      - "traefik.http.routers.sponsorblock.tls=true"
+      - "traefik.http.routers.sponsorblock.tls.certresolver=leresolver"
+      - "traefik.http.routers.sponsorblock.tls.options=secureTLS@file"
+      - "traefik.http.services.sponsorblock.loadbalancer.server.port=8080"
+      - "traefik.http.routers.sponsorblock.middlewares=servicests@file"
+#    restart: unless-stopped #this is because of that stupid mount isssues!!
+    networks:
+      - web
+      - internal
+networks:
+  web:
+    external: true
+  internal:
+    external: false
